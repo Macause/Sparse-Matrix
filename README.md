@@ -1,31 +1,31 @@
 # Sparse Matrix
 
-資料結構與圖論演算法 Programming Assignment IV，以 Python 自行實作列鏈結串列與非零元素鏈結串列。
+以 Python 鏈結串列實作的稀疏矩陣，只儲存非零元素，支援加減法、取負、轉置與乘法，不建立完整二維陣列。
 
-## 執行環境
+## 環境
 
-- Python 3.8 以上，僅使用標準函式庫，不需安裝額外套件。
-- 在儲存庫根目錄執行指令。
+Python 3.8 以上，僅使用標準函式庫，不需安裝額外套件。
 
-## 檔案分工
+## 模組
 
-| 檔案 | 用途 |
+| 檔案 | 功能 |
 |---|---|
-| `sparse_matrix.py` | `ElementNode`、`RowNode`、`SpaceMatrix`，以及存取、輸入輸出和記憶體計算 |
-| `matrix_operations.py` | `add`、`negate`、`subtract`、`transpose`、`multiply` |
-| `main.py` | 讀取 A、B，示範轉置、加法、減法與乘法 |
-| `sample_input.txt` | 單一矩陣範例，適用於 `SpaceMatrix.read()`，不是主程式的完整輸入 |
-| `sample_add_input.txt` | 兩個可相加減的矩陣 |
-| `sample_multiply_input.txt` | 可相乘的 2×3、3×2 矩陣 |
-| `tests/` | 自動測試、測試說明與實際執行紀錄 |
+| `sparse_matrix.py` | 節點與 `SpaceMatrix` 類別，提供元素存取、輸入輸出與記憶體統計 |
+| `matrix_operations.py` | `add`、`subtract`、`negate`、`transpose`、`multiply` |
+| `main.py` | 讀入兩個矩陣並顯示各項運算結果 |
+| `tests/test_matrix.py` | 自動測試 |
 
-## 執行主程式
+## 快速開始
+
+在儲存庫根目錄執行：
 
 ```shell
 python main.py
 ```
 
-依序輸入兩個矩陣。每個矩陣第一行為 `列數 欄數`，接著每列輸入 `欄號 值` 配對，以單獨的 `0` 結束；列號、欄號從 1 開始。例如：
+依序輸入兩個矩陣。每個矩陣第一行為 `列數 欄數`，接著每列輸入 `欄號 值` 配對，以單獨的 `0` 結束。列號、欄號從 1 開始，全零列只需輸入 `0`。
+
+例如，以下輸入兩個尺寸為 2×3、3×2 的矩陣：
 
 ```text
 2 3
@@ -37,29 +37,16 @@ python main.py
 1 -2 2 7 0
 ```
 
-上例乘積為：
+主程式顯示兩個矩陣及其轉置；尺寸符合時執行加減法與乘法，不符合時顯示對應訊息。上例乘積為：
 
 ```text
 4 21
 0 24
 ```
 
-PowerShell 可直接使用範例檔：
+每個結果都會顯示完整矩陣、非零元素串列及抽象記憶體用量。
 
-```powershell
-Get-Content sample_add_input.txt | python main.py
-Get-Content sample_multiply_input.txt | python main.py
-```
-
-在 Bash 或 Windows cmd 可使用：
-
-```shell
-python main.py < sample_multiply_input.txt
-```
-
-主程式分別判斷加減法與乘法的維度限制，不合法的運算顯示訊息，其他合法運算仍會執行。所有矩陣均顯示完整格式、串列格式及記憶體用量。
-
-## 在其他程式中使用
+## 作為模組使用
 
 ```python
 from sparse_matrix import SpaceMatrix
@@ -70,41 +57,54 @@ b = SpaceMatrix(2, 2)
 a.set(1, 2, 3)
 b.set(2, 1, 4)
 
+print(a.get(1, 2))  # 3
+print(a.get(1, 1))  # 0
+
 add(a, b).print_regular()
 subtract(a, b).print_regular()
 negate(a).print_regular()
 transpose(a).print_regular()
 multiply(a, b).print_regular()
+
+a.set(1, 2, 0)  # 設為零時移除該元素節點
 ```
 
-運算建立新節點，不修改原矩陣。每列元素依欄號排序，只存非零值。設為零時移除節點；讀取時允許亂序，重複位置以最後一筆為準。目前假設尺寸、索引與輸入格式合法。
+### 矩陣方法
 
-## 記憶體與效率
+| 方法 | 說明 |
+|---|---|
+| `SpaceMatrix(rows, cols)` | 建立指定尺寸的全零矩陣 |
+| `SpaceMatrix.read()` | 使用 `input()` 依上述格式讀取一個矩陣 |
+| `set(row, col, value)` | 新增或更新元素；值為零時移除節點 |
+| `get(row, col)` | 取得元素；未儲存的位置回傳零 |
+| `print_regular()` | 逐格輸出並補零 |
+| `print_list()` | 輸出尺寸、各列的欄號與值，最後顯示記憶體用量 |
+| `memory_units()` | 回傳抽象記憶體單位數 |
 
-作業模型將每個整數或指標視為一單位。`memory_units()` 回傳：
+### 運算函式
 
-```text
-3 + 2 × 列數 + 3 × 非零元素數
-```
+| 函式 | 說明與尺寸限制 |
+|---|---|
+| `add(a, b)` | A + B，尺寸必須相同 |
+| `subtract(a, b)` | A − B，尺寸必須相同；透過 A + (−B) 計算 |
+| `negate(a)` | 每個非零元素取負 |
+| `transpose(a)` | 交換列、欄位置與矩陣尺寸 |
+| `multiply(a, b)` | A × B，A 的欄數必須等於 B 的列數；先轉置 B 再計算內積 |
 
-這是矩陣本身的抽象儲存量，不是 Python 實際位元組數，也不包含運算暫存。
+所有運算回傳新矩陣，不修改輸入矩陣。加減法、乘法尺寸不符時拋出 `ValueError`。
 
-- 加減法：O(m + eA + eB)。減法重用 `add(A, negate(B))`，額外建立 −B。
-- 取負：O(m + e)。
-- 轉置：O(m + n + e)，另用 O(n) 節點參照作為暫存。
-- 乘法：先轉置 B，再使用兩條排序串列做內積。A 為 l×m、B 為 m×n 時，時間上界為 O(l + m + n + ln + n·eA + l·eB)。若皆為 N×N 且各有 O(N) 個非零元素，則為 O(N²)；一般尺寸不直接宣稱 O(ln + e)。
-- 單一矩陣儲存量為 O(列數 + 非零元素數)，乘積還須計入結果的非零元素數。
+## 儲存與輸入規則
 
-## 測試
+- 每列有獨立的元素鏈結串列，元素依欄號排序。
+- 只儲存非零值；運算抵銷為零時不建立節點。
+- 讀取時允許欄號亂序；重複指定同一位置時，以最後一筆為準。
+- 輸入尺寸應為正整數，值為整數，索引須在矩陣範圍內；目前假設輸入合法。
+- `memory_units()` 以每個整數與指標各一單位計算，公式為 `3 + 2 × 列數 + 3 × 非零元素數`，不代表 Python 實際位元組數或運算暫存空間。
+
+## 執行測試
 
 ```shell
 python -m unittest discover -s tests -v
 ```
 
-11 個測試方法涵蓋節點操作、輸入輸出、排序、零值抵銷、長方形運算、錯誤尺寸、結果獨立性及記憶體統計。其中包含固定種子 42 的 100 組小型亂數資料，以獨立數學公式對照結果。
-
-詳細案例見 [測試設計](tests/README.md)，實際紀錄見 [test_results.txt](tests/test_results.txt)。測試中的二維串列只用於產生預期答案，正式矩陣運算未展開二維陣列。
-
-## AI 使用聲明
-
-本作業使用 ChatGPT／Codex 協助討論資料結構與演算法、產生及修改程式、撰寫註釋、分析效率、建立與執行測試，以及整理說明文件。使用者提出每列獨立串列、以負矩陣配合加法實作減法，以及轉置後計算乘法等方向。AI 的參與不限於文字潤飾。
+測試涵蓋輸入輸出、節點插入與移除、排序、零值抵銷、轉置、加減乘、尺寸錯誤、結果獨立性與記憶體統計，並包含固定種子的 100 組小型亂數資料。

@@ -19,3 +19,8 @@ venv/
 *.synctex.gz
 .DS_Store
 Thumbs.db
+
+# Local examples and execution records
+/sample*_input.txt
+/tests/*.txt
+/tests/README.md
