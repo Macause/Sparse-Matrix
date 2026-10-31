@@ -1,0 +1,21 @@
+# Python cache and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local report drafts and assignment handout
+/report/
+/p4.pdf
+
+# Temporary builds and local editor settings
+/tmp/
+.vscode/
+.idea/
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+.DS_Store
+Thumbs.db
